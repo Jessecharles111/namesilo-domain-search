@@ -113,13 +113,21 @@ async function checkDomains(domains) {
   if (code !== 300) {
     return { success: false, code, detail, results: [] };
   }
-  const availableDomains = toArray(reply.available?.domain);
-  const unavailableDomains = toArray(reply.unavailable?.domain);
-  const invalidDomains = toArray(reply.invalid?.domain);
+  const availableDomains = toArray(reply.available?.domain).map(normalizeDomain);
+  const unavailableDomains = toArray(reply.unavailable?.domain).map(normalizeDomain);
+  const invalidDomains = toArray(reply.invalid?.domain).map(normalizeDomain);
+
+  function normalizeDomain(entry) {
+    if (typeof entry === 'string') return entry.toLowerCase();
+    if (entry && typeof entry === 'object' && entry['#text']) return String(entry['#text']).toLowerCase();
+    return String(entry).toLowerCase();
+  }
+
   const results = domains.map(domain => {
-    if (availableDomains.includes(domain)) return { domain, available: true, status: 'available' };
-    if (unavailableDomains.includes(domain)) return { domain, available: false, status: 'unavailable' };
-    if (invalidDomains.includes(domain)) return { domain, available: false, status: 'invalid' };
+    const normalized = domain.toLowerCase();
+    if (availableDomains.includes(normalized)) return { domain, available: true, status: 'available' };
+    if (unavailableDomains.includes(normalized)) return { domain, available: false, status: 'unavailable' };
+    if (invalidDomains.includes(normalized)) return { domain, available: false, status: 'invalid' };
     return { domain, available: null, status: 'unknown' };
   });
   return { success: true, code, detail, results };

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: namesilo-domain-search-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NAMESILO_API_KEY
+        sync: false
